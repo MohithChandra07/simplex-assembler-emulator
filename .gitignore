@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+
+# build files
+*.out
+*.o
+*.exe
+
+# temp files
+*.log
+
+# large media
+*.mov
+*.mp4
+
+# zip
+*.zip
