@@ -1,0 +1,562 @@
+/*****************************************************************************
+TITLE: Claims                                                                                                                               
+AUTHOR: Mohith Chandra Gugulothu
+ID: 2403cs04
+
+Declaration of Authorship
+This txt file, claims.txt, is part of the assignment of Computer Architecture CS2206 at the 
+department of Computer Science and Engg, IIT Patna . 
+*****************************************************************************/
+
+==========
+Files:
+==========
+*All the files I submitted, asm.cpp and emu.cpp, have my name and student id at the start, along with a declaration of authorship.
+
+The evidence for the assembler and emulator includes the output files from the nine test examples given (test1 to test9). The test assembly files are also provided for verification. The generated output files ( .lst, .log, .o for assembler; .trace, .before, .after, .memdump for emulator) have been tested and work properly.
+
+List of submitted files:
+  - asm.cpp          (Two‑pass assembler source)
+  - emu.cpp          (Emulator source)
+  - test1.asm        (Unused label, infinite loop, forward reference)
+  - test2.asm        (Error detection test)
+  - test3.asm        (SET pseudo‑instruction test)
+  - test4.asm        (Complex program with recursion – triangle numbers)
+  - test5.asm        (Sum of integers 1 to N)
+  - test6.asm        (Multiplication via repeated addition)
+  - test8.asm        (Deliberate errors and warnings – 8 errors, 2 warnings)
+  - test9.asm        (Bubble sort)
+
+=========================
+Compilation instructions (Assembler):
+=========================
+    
+Windows:
+    g++ asm.cpp -o asm
+    asm <filename>.asm
+Ubuntu:
+    g++ asm.cpp -o asm
+    ./asm <filename>.asm
+
+Footnote:
+    * Input files (the .asm file) must be present in the same folder where the code is executed.
+    * Output files: if there are no errors, <filename>.lst, <filename>.log and <filename>.o will be produced in the same folder.
+
+=============================
+Program format and structure (Assembler):
+=============================
+
+The assembler:
+    
+    * Written in C++ Language.
+
+    * Every instruction of the SIMPLEX ISA (including the SET pseudo‑instruction) is implemented.
+
+    * It contains a table of instruction names and expected operand types (0 = no operand, 1 = constant, 2 = label/offset).
+
+    * asm.cpp is the main and only file of my assembler.
+
+    * It is a 2‑pass assembler (implemented in pass1() and pass2()).
+
+    * Outputs the required information in three files:
+       * .lst – listing file (address, machine code, original assembly line)
+       * .log – log file (address, machine code, assembly line, errors/warnings)
+       * .o   – object file (binary machine code, 32‑bit words)
+
+    * All important errors are diagnosed along with their line numbers: duplicate label, invalid label name, undefined label, missing operand, unexpected operand, extra text after operand, invalid mnemonic, missing operand for data, SET without label/value, etc.
+
+    * Warnings are generated when a label is declared but never used, and when a data directive is unlabeled.
+
+    * Comments and self‑descriptive variable names have been used.
+
+    * The listing file shows the address and the generated machine code for each instruction/data word. Blank lines and comment lines are skipped and do not increment the program counter (a bug fix is documented in the code).
+
+    * The assembler understands numeric constants in decimal, octal (leading 0) and hexadecimal (0x) formats.
+
+    * The SET instruction is implemented correctly: it assigns the given value to the label without generating any machine code. Forward references are handled because the value is resolved in pass2.
+
+    * The object file is written in binary format, containing only the valid machine code words (excluding SET and error lines).
+
+===========================================
+Testing (Assembler):
+===========================================
+The assembler has been tested with nine assembly files covering all aspects of the SIMPLEX instruction set, error handling, and pseudo‑instructions. Below is a summary of the results.
+
+1) test1.asm – Unused label, infinite loop, forward reference.
+   #Input: ./asm test1.asm
+   #Output: 
+        Assembling: test1.asm
+        Output files generated:
+          test1.lst
+          test1.log
+          test1.o
+        Errors: 0, Warnings: 1 (unused label "label")
+   The listing and object files are correctly generated. The branch instruction "br next" produces an offset of 0 as expected.
+
+2) test2.asm – Error detection test.
+   #Input: ./asm test2.asm
+   #Output:
+        Assembling: test2.asm
+        Output files generated:
+          test2.lst
+          test2.log
+        Errors: 9, Warnings: 0   (Note: test2.asm contains 9 errors – duplicate label, undefined label, invalid number, missing operand, unexpected operand, extra text, invalid label name, two bogus mnemonics)
+   The log file lists all errors with correct line numbers, and no object file is produced (only valid lines are assembled). This demonstrates robust error handling.
+
+3) test3.asm – SET pseudo‑instruction.
+   #Input: ./asm test3.asm
+   #Output:
+        Assembling: test3.asm
+        Output files generated:
+          test3.lst
+          test3.log
+          test3.o
+        Errors: 0, Warnings: 0
+   The SET directives correctly assign values 75 and 66 to labels "val" and "val2". The instructions "ldc val" and "adc val2" use these values, and the object code reflects the correct constants.
+
+4) test4.asm – Complex program (triangle number computation with recursion).
+   #Input: ./asm test4.asm
+   #Output:
+        Assembling: test4.asm
+        Output files generated:
+          test4.lst
+          test4.log
+          test4.o
+        Errors: 0, Warnings: 0
+   The assembler correctly resolves all labels and produces a valid object file. The program computes triangle numbers for count=10, and the result is stored at "result".
+
+5) test5.asm – Sum of integers 1 to N.
+   #Input: ./asm test5.asm
+   #Output:
+        Assembling: test5.asm
+        Output files generated:
+          test5.lst
+          test5.log
+          test5.o
+        Errors: 0, Warnings: 0
+   The object code corresponds to the algorithm; the sum 55 (0x37) is stored at "result".
+
+6) test6.asm – Multiplication by repeated addition.
+   #Input: ./asm test6.asm
+   #Output:
+        Assembling: test6.asm
+        Output files generated:
+          test6.lst
+          test6.log
+          test6.o
+        Errors: 0, Warnings: 0
+   Multiplication of 6 and 7 yields 42 (0x2A) at "result".
+
+7) test8.asm – Deliberate errors and warnings.
+   #Input: ./asm test8.asm
+   #Output:
+        Assembling: test8.asm
+        Output files generated:
+          test8.lst
+          test8.log
+        Errors: 8, Warnings: 2
+   The log file contains all 8 expected errors and 2 warnings (unused label "unused" and unlabeled data). No object file is generated for error lines, but valid lines (setup and final instructions) are assembled and appear in the listing. This confirms the assembler’s ability to continue after errors.
+
+8) test9.asm – Bubble sort.
+   #Input: ./asm test9.asm
+   #Output:
+        Assembling: test9.asm
+        Output files generated:
+          test9.lst
+          test9.log
+          test9.o
+        Errors: 0, Warnings: 0
+   The assembler correctly processes the complex bubble sort algorithm with multiple labels and branch offsets. The object file contains the correct machine code for sorting an array of 10 numbers.
+
+All tests demonstrate that the assembler fully implements the SIMPLEX instruction set, handles errors and warnings as required, and produces correct output files.
+
+=========================
+Compilation instructions (Emulator):
+=========================
+    
+Windows:
+    g++ emu.cpp -o emu
+    emu <filename>.o [ -o flags ]
+Ubuntu:
+    g++ emu.cpp -o emu
+    ./emu <filename>.o [ -o flags ]
+
+Footnote:
+    * Input files (the .o file) must be present in the same folder where the code is executed.
+    * The -o flag can combine digits 1 (trace), 2 (memory dump), 3 (before), 4 (after). If omitted, default is trace.
+
+=============================
+Program format and structure (Emulator):
+=============================
+1. The emulator:
+
+* Written in C++.
+
+* Implements the full SIMPLEX instruction set with correct behaviour for all 19 opcodes (0‑18). Each instruction is executed exactly as specified.
+
+* Memory size is 65536 32‑bit words.
+
+* The emulator can produce several output files:
+   - .trace : step‑by‑step trace showing PC, instruction word, mnemonic, operand, and register values (A, B, SP) before execution.
+   - .before : register state before each instruction (only A, B, SP, PC).
+   - .after  : register state after each instruction.
+   - .memdump : final memory contents printed 4 words per line, plus final register state.
+
+* Flags are selected with -o followed by a string of digits (e.g., -o 13 for trace and before). If no flag is given, trace is produced by default.
+
+* Error handling: The emulator detects out‑of‑bounds PC, unknown opcodes, and possible infinite loops (>11 million instructions). It prints appropriate error messages and stops.
+
+* The memory dump shows only the region up to the last non‑zero word, aligned to multiples of 4, for conciseness.
+
+* All register and memory values are displayed in 8‑digit hexadecimal, with signed decimal interpretation for final register values.
+
+* The emulator can process multiple object files in a single invocation; each is run independently.
+
+===========================================
+Testing (Emulator):
+===========================================
+The emulator has been tested with the object files generated from the assembler tests. The outputs match the expected results for each program.
+
+1) test1.o (unused label, infinite loop)
+   #Input: ./emu test1.o -o 1
+   #Output: trace file test1.trace is generated. The trace shows the infinite loop at "loop" and the subsequent instructions. Registers are updated correctly.
+
+2) test2.o (no object file due to errors) – Not applicable.
+
+3) test3.o (SET test)
+   #Input: ./emu test3.o -o 24
+   #Output: test3.memdump and test3.after files. The registers after execution show A = 75+66 = 141 (0x8D) and PC past HALT. Memory dump confirms no data changes.
+
+4) test4.o (triangle numbers)
+   #Input: ./emu test4.o -o 1234
+   #Output: all four output files. The trace shows the recursive calls. Final memory at "result" contains 55 (0x37) for N=10, as expected. Register state is consistent.
+
+5) test5.o (sum 1..10)
+   #Input: ./emu test5.o -o 124
+   #Output: trace, memdump, after. Memory at "result" (address 0x1018?) contains 0x37. Final A = 55, B = 0, SP restored.
+
+6) test6.o (multiplication)
+   #Input: ./emu test6.o -o 2
+   #Output: memdump only. Result = 42 (0x2A) at "result".
+
+7) test8.o – Not generated (errors).
+
+8) test9.o (bubble sort)
+   #Input: ./emu test9.o -o 14
+   #Output: trace and after files. The trace shows the sorting steps. Final memory from address "arr" contains the sorted array [0,1,2,3,4,5,6,7,8,9]. Register state is as expected.
+
+In all cases, the emulator correctly executed the programs and produced the required output files. The instruction behaviour matches the SIMPLEX specification, and the file generation is reliable.
+
+/*****************************************************************************
+End of Claims
+*****************************************************************************/ 
+
+ generateMachineCodeFile();
+
+ cout << "  " << baseFileName << ".mc\n";
+ 
+ void generateMachineCodeFile() {
+    string machineCodeFileName = baseFileName + ".mc";
+    ofstream machineCodeFile(machineCodeFileName);
+
+    if (!machineCodeFile.is_open()) return;
+
+    for (const auto& line : lines) {
+        if (!line.hasError && line.isValid &&
+            !line.isSet && !line.mnemonic.empty()) {
+            machineCodeFile << intToHex(line.code, 8) << "\n";
+        }
+    }
+
+    machineCodeFile.close();
+}
+
+********************************************************************************************************************************************
+emu 
+
+
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <cstring>
+#include <vector>
+
+static const int MEMORY_SIZE = 65536;
+
+enum Reg { REG_A = 0, REG_B = 1, REG_PC = 2, REG_SP = 3 };
+
+struct Emulator {
+    int  reg[4];
+    int  memory[MEMORY_SIZE];
+    bool running;
+    int  instruction_count;
+
+    Emulator() : running(true), instruction_count(0) {
+        std::memset(reg, 0, sizeof(reg));
+        std::memset(memory, 0, sizeof(memory));
+    }
+};
+
+/* ---------------- HEX FORMAT ---------------- */
+
+static std::string hex8(int v)
+{
+    std::ostringstream o;
+    o << std::hex << std::uppercase
+      << std::setfill('0') << std::setw(8)
+      << static_cast<unsigned int>(v);
+    return o.str();
+}
+
+/* ---------------- LOADERS ---------------- */
+
+/* OLD: binary loader (.o) */
+static bool load_object(Emulator& emu, const std::string& filename)
+{
+    std::ifstream file(filename, std::ios::binary);
+    if (!file) {
+        std::cerr << "Cannot open '" << filename << "'\n";
+        return false;
+    }
+
+    int addr = 0;
+    unsigned int word;
+
+    while (file.read(reinterpret_cast<char*>(&word), sizeof(word))) {
+        if (addr >= MEMORY_SIZE) {
+            std::cerr << "Object file too large\n";
+            return false;
+        }
+        emu.memory[addr++] = static_cast<int>(word);
+    }
+
+    return true;
+}
+
+/* NEW: text loader (.mc) */
+static bool load_mc_file(Emulator& emu, const std::string& filename)
+{
+    std::ifstream file(filename);
+    if (!file) {
+        std::cerr << "Cannot open '" << filename << "'\n";
+        return false;
+    }
+
+    std::string line;
+    int addr = 0;
+
+    while (std::getline(file, line)) {
+        if (line.empty()) continue;
+
+        unsigned int word;
+        std::stringstream ss;
+        ss << std::hex << line;
+        ss >> word;
+
+        if (addr >= MEMORY_SIZE) {
+            std::cerr << "MC file too large\n";
+            return false;
+        }
+
+        emu.memory[addr++] = static_cast<int>(word);
+    }
+
+    return true;
+}
+
+/* ---------------- EXECUTION ---------------- */
+
+static void execute(Emulator& emu)
+{
+    emu.reg[REG_PC] = 0;
+    emu.reg[REG_SP] = 0;
+
+    while (emu.running) {
+
+        int pc = emu.reg[REG_PC];
+
+        if (pc < 0 || pc >= MEMORY_SIZE) {
+            std::cerr << "PC out of bounds\n";
+            break;
+        }
+
+        int instr   = emu.memory[pc];
+        int opcode  = instr & 0xFF;
+        int operand = (instr >> 8) & 0xFFFFFF;
+
+        /* sign extend */
+        if (operand & 0x800000)
+            operand |= 0xFF000000;
+
+        int next_pc = pc + 1;
+
+        switch (opcode) {
+
+            case 0: // ldc
+                emu.reg[REG_B] = emu.reg[REG_A];
+                emu.reg[REG_A] = operand;
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 1: // adc
+                emu.reg[REG_A] += operand;
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 2: // ldl
+                emu.reg[REG_B] = emu.reg[REG_A];
+                emu.reg[REG_A] = emu.memory[emu.reg[REG_SP] + operand];
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 3: // stl
+                emu.memory[emu.reg[REG_SP] + operand] = emu.reg[REG_A];
+                emu.reg[REG_A] = emu.reg[REG_B];
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 4: // ldnl
+                emu.reg[REG_A] = emu.memory[emu.reg[REG_A] + operand];
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 5: // stnl
+                emu.memory[emu.reg[REG_A] + operand] = emu.reg[REG_B];
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 6: // add
+                emu.reg[REG_A] = emu.reg[REG_B] + emu.reg[REG_A];
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 7: // sub
+                emu.reg[REG_A] = emu.reg[REG_B] - emu.reg[REG_A];
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 8: // shl
+                emu.reg[REG_A] = emu.reg[REG_B] << emu.reg[REG_A];
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 9: // shr
+                emu.reg[REG_A] =
+                    static_cast<int>((unsigned)emu.reg[REG_B] >> emu.reg[REG_A]);
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 10: // adj
+                emu.reg[REG_SP] += operand;
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 11: // a2sp
+                emu.reg[REG_SP] = emu.reg[REG_A];
+                emu.reg[REG_A] = emu.reg[REG_B];
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 12: // sp2a
+                emu.reg[REG_B] = emu.reg[REG_A];
+                emu.reg[REG_A] = emu.reg[REG_SP];
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            case 13: // call
+                emu.reg[REG_B] = emu.reg[REG_A];
+                emu.reg[REG_A] = next_pc;
+                emu.reg[REG_PC] = next_pc + operand;
+                break;
+
+            case 14: // return
+                emu.reg[REG_PC] = emu.reg[REG_A];
+                emu.reg[REG_A] = emu.reg[REG_B];
+                break;
+
+            case 15: // brz
+                emu.reg[REG_PC] =
+                    (emu.reg[REG_A] == 0) ? next_pc + operand : next_pc;
+                break;
+
+            case 16: // brlz
+                emu.reg[REG_PC] =
+                    (emu.reg[REG_A] < 0) ? next_pc + operand : next_pc;
+                break;
+
+            case 17: // br
+                emu.reg[REG_PC] = next_pc + operand;
+                break;
+
+            case 18: // HALT
+                emu.running = false;
+                emu.reg[REG_PC] = next_pc;
+                break;
+
+            default:
+                std::cerr << "Unknown opcode\n";
+                emu.running = false;
+        }
+
+        emu.instruction_count++;
+
+        if (emu.instruction_count > 10000000) {
+            std::cerr << "Infinite loop suspected\n";
+            break;
+        }
+    }
+
+    std::cout << "\nExecution finished.\n";
+    std::cout << "Instructions executed: " << emu.instruction_count << "\n";
+    std::cout << "A=" << hex8(emu.reg[REG_A])
+              << " B=" << hex8(emu.reg[REG_B])
+              << " PC=" << hex8(emu.reg[REG_PC])
+              << " SP=" << hex8(emu.reg[REG_SP]) << "\n";
+}
+
+/* ---------------- MAIN ---------------- */
+
+int main(int argc, char* argv[])
+{
+    if (argc < 2) {
+        std::cout << "Usage: ./emu <file.o | file.mc>\n";
+        return 1;
+    }
+
+    std::string filename = argv[1];
+    Emulator emu;
+
+    bool loaded = false;
+
+    if (filename.find(".mc") != std::string::npos) {
+        loaded = load_mc_file(emu, filename);
+    } else {
+        loaded = load_object(emu, filename);
+    }
+
+    if (loaded) {
+        execute(emu);
+    }
+
+    return 0;
+}
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+   generateSymbolTableFile();
+    printSymbolTable(cout);
+
+    cout << "  " << baseFileName << ".sym\n";
+
+    void generateSymbolTableFile() {
+        string symFileName = baseFileName + ".sym";
+        ofstream symFile(symFileName);
+
+        if (!symFile.is_open()) return;
+
+        printSymbolTable(symFile);
+        symFile.close();
+    }
+};

@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIMPLEX Assembler & Emulator</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0c10;
+  --bg2: #0f1218;
+  --bg3: #161b24;
+  --bg4: #1c2333;
+  --border: #2a3448;
+  --border2: #3a4a68;
+  --accent: #4f9cf9;
+  --accent2: #7c5cfc;
+  --green: #3dd68c;
+  --amber: #f5a623;
+  --red: #f05c5c;
+  --cyan: #38d1c4;
+  --text: #e2e8f0;
+  --text2: #8896b0;
+  --text3: #4a5a78;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Space Grotesk', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Background grid */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--border) 1px, transparent 1px);
+  background-size: 40px 40px;
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+header {
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 32px;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-chip {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+  box-shadow: 0 0 20px rgba(79,156,249,0.3);
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+
+.logo-text span { color: var(--accent); }
+
+.badge {
+  padding: 4px 10px;
+  background: rgba(79,156,249,0.1);
+  border: 1px solid rgba(79,156,249,0.25);
+  border-radius: 20px;
+  font-size: 11px;
+  font-family: var(--mono);
+  color: var(--accent);
+  letter-spacing: 0.5px;
+}
+
+/* Main layout */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg3);
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text2);
+}
+
+.dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot-amber { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.dot-blue  { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+.dot-cyan  { background: var(--cyan); box-shadow: 0 0 6px var(--cyan); }
+.dot-red   { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+/* Editor */
+.editor-wrap {
+  position: relative;
+  flex: 1;
+  display: flex;
+}
+
+.line-numbers {
+  padding: 16px 8px 16px 12px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text3);
+  text-align: right;
+  user-select: none;
+  background: var(--bg3);
+  min-width: 42px;
+  border-right: 1px solid var(--border);
+}
+
+textarea#asm-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  resize: none;
+  padding: 16px 16px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+  caret-color: var(--accent);
+  width: 100%;
+  min-height: 280px;
+  tab-size: 8;
+}
+
+textarea#asm-input::placeholder { color: var(--text3); }
+textarea#asm-input::-webkit-scrollbar { width: 4px; }
+textarea#asm-input::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* Sample buttons */
+.samples {
+  display: flex;
+  gap: 6px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+  background: var(--bg3);
+}
+
+.sample-btn {
+  padding: 4px 10px;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--text2);
+  font-size: 11px;
+  font-family: var(--mono);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.sample-btn:hover {
+  background: rgba(79,156,249,0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Assemble button */
+.assemble-row {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-assemble {
+  flex: 1;
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-assemble:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(79,156,249,0.4); }
+.btn-assemble:active { transform: translateY(0); }
+.btn-assemble.loading { opacity: 0.7; pointer-events: none; }
+
+.btn-emulate {
+  padding: 10px 16px;
+  background: rgba(61,214,140,0.1);
+  border: 1px solid rgba(61,214,140,0.3);
+  border-radius: 8px;
+  color: var(--green);
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-emulate:hover { background: rgba(61,214,140,0.2); }
+.btn-emulate:disabled { opacity: 0.3; pointer-events: none; }
+
+/* Output panels */
+.output-area {
+  flex: 1;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.8;
+  overflow-y: auto;
+  min-height: 280px;
+  max-height: 400px;
+}
+
+.output-area::-webkit-scrollbar { width: 4px; }
+.output-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.output-placeholder {
+  color: var(--text3);
+  font-style: italic;
+  text-align: center;
+  margin-top: 40px;
+}
+
+/* Machine code table */
+.mc-table { width: 100%; border-collapse: collapse; }
+.mc-table th {
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text3);
+  text-align: left;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+}
+.mc-table td {
+  padding: 3px 8px;
+  border-bottom: 1px solid rgba(42,52,72,0.4);
+  font-size: 12px;
+  vertical-align: top;
+}
+.mc-table tr:hover td { background: rgba(255,255,255,0.02); }
+.mc-table tr.error-row td { background: rgba(240,92,92,0.06); }
+.mc-table tr.set-row td { opacity: 0.6; }
+
+.addr-cell { color: var(--text3); }
+.code-cell { color: var(--cyan); font-weight: 600; }
+.mnem-cell { color: var(--accent); }
+.operand-cell { color: var(--amber); }
+.label-cell { color: var(--green); }
+.error-cell { color: var(--red); font-size: 11px; }
+.comment-cell { color: var(--text3); font-style: italic; font-size: 11px; }
+
+/* Error messages */
+.err-list { display: flex; flex-direction: column; gap: 4px; }
+.err-item {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 6px 10px;
+  background: rgba(240,92,92,0.08);
+  border: 1px solid rgba(240,92,92,0.2);
+  border-radius: 6px;
+  font-size: 12px;
+}
+.err-icon { color: var(--red); font-size: 11px; margin-top: 1px; flex-shrink: 0; }
+.err-text { color: var(--text2); }
+.warn-item {
+  background: rgba(245,166,35,0.08);
+  border-color: rgba(245,166,35,0.2);
+}
+.warn-icon { color: var(--amber); font-size: 11px; margin-top: 1px; flex-shrink: 0; }
+.warn-text { color: var(--text2); }
+
+/* Emulator panel */
+.emu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.reg-box {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  text-align: center;
+}
+
+.reg-name {
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text3);
+  margin-bottom: 4px;
+}
+
+.reg-val {
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+  transition: color 0.3s;
+}
+
+.reg-val.changed { color: var(--green); animation: flash 0.5s ease; }
+
+@keyframes flash {
+  0% { color: var(--green); text-shadow: 0 0 8px var(--green); }
+  100% { color: var(--accent); text-shadow: none; }
+}
+
+/* Step controls */
+.step-controls {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-step {
+  padding: 6px 14px;
+  background: var(--bg4);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-step:hover:not(:disabled) {
+  background: rgba(79,156,249,0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.btn-step:disabled { opacity: 0.3; pointer-events: none; }
+.btn-step.primary {
+  background: rgba(79,156,249,0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.step-counter {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text3);
+}
+
+/* Trace table */
+.trace-area {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 260px;
+}
+.trace-area::-webkit-scrollbar { width: 4px; }
+.trace-area::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.trace-table { width: 100%; border-collapse: collapse; }
+.trace-table th {
+  font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase;
+  color: var(--text3); text-align: left;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0;
+  background: var(--bg2);
+}
+.trace-table td {
+  padding: 3px 10px;
+  border-bottom: 1px solid rgba(42,52,72,0.3);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.trace-table tr.current-row td { background: rgba(79,156,249,0.08); }
+.trace-table tr.current-row td:first-child { border-left: 2px solid var(--accent); }
+
+/* AI explanation panel */
+.explain-panel {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 32px;
+}
+
+.explain-body {
+  padding: 16px 20px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text2);
+  min-height: 80px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.explain-body::-webkit-scrollbar { width: 4px; }
+.explain-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.explain-placeholder {
+  color: var(--text3);
+  font-style: italic;
+}
+
+.explain-body code {
+  background: var(--bg4);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--cyan);
+}
+
+.explain-body strong { color: var(--text); font-weight: 600; }
+
+.typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 14px;
+  background: var(--accent);
+  animation: blink 0.8s step-end infinite;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* Symbol table */
+.sym-table { width: 100%; border-collapse: collapse; }
+.sym-table th {
+  font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase;
+  color: var(--text3); text-align: left;
+  padding: 4px 10px; border-bottom: 1px solid var(--border);
+}
+.sym-table td { padding: 4px 10px; font-family: var(--mono); font-size: 12px; border-bottom: 1px solid rgba(42,52,72,0.3); }
+.sym-name { color: var(--green); }
+.sym-addr { color: var(--cyan); }
+.sym-type { color: var(--amber); font-size: 10px; padding: 1px 6px; background: rgba(245,166,35,0.1); border: 1px solid rgba(245,166,35,0.2); border-radius: 4px; }
+
+/* Stats bar */
+.stats-bar {
+  display: flex;
+  gap: 20px;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--bg3);
+}
+.stat { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+.stat span { color: var(--text2); }
+.stat.ok span { color: var(--green); }
+.stat.err span { color: var(--red); }
+.stat.warn span { color: var(--amber); }
+
+/* Spinner */
+.spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.2);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.hidden { display: none !important; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .main-grid { grid-template-columns: 1fr; }
+  .emu-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-chip">⚙</div>
+      <div class="logo-text"><span>SIMPLEX</span> Studio</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="badge">CS2206</div>
+      <div class="badge">Two-Pass Assembler</div>
+    </div>
+  </div>
+</header>
+
+<!-- Main editor + output grid -->
+<div class="main-grid">
+
+  <!-- Left: Editor -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title"><div class="dot dot-green"></div>Assembly Input</div>
+      <div class="badge">SIMPLEX ASM</div>
+    </div>
+    <div class="editor-wrap">
+      <div class="line-numbers" id="line-nums">1</div>
+      <textarea id="asm-input" spellcheck="false" placeholder="; Write your SIMPLEX assembly here...
+; Example:
+ldc 5
+adc 3
+HALT"></textarea>
+    </div>
+    <div class="samples">
+      <span style="font-size:11px;color:var(--text3);margin-right:4px;align-self:center;">Samples:</span>
+      <button class="sample-btn" onclick="loadSample('test1')">test1</button>
+      <button class="sample-btn" onclick="loadSample('test3')">test3 SET</button>
+      <button class="sample-btn" onclick="loadSample('add')">add two nums</button>
+      <button class="sample-btn" onclick="loadSample('loop')">loop</button>
+      <button class="sample-btn" onclick="loadSample('errors')">errors</button>
+    </div>
+    <div class="assemble-row">
+      <button class="btn-assemble" id="btn-asm" onclick="doAssemble()">▶ Assemble</button>
+      <button class="btn-emulate" id="btn-emu" onclick="initEmulator()" disabled>⚡ Emulate</button>
+    </div>
+  </div>
+
+  <!-- Right: Machine code output -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title"><div class="dot dot-cyan"></div>Machine Code Output</div>
+    </div>
+    <div class="output-area" id="mc-output">
+      <div class="output-placeholder">Assembled instructions will appear here...</div>
+    </div>
+    <div class="stats-bar" id="stats-bar" style="display:none">
+      <div class="stat ok">Instructions: <span id="stat-instr">0</span></div>
+      <div class="stat err">Errors: <span id="stat-err">0</span></div>
+      <div class="stat warn">Warnings: <span id="stat-warn">0</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Second row: Symbol table + Errors -->
+<div class="main-grid" style="margin-bottom:20px">
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title"><div class="dot dot-amber"></div>Symbol Table</div>
+    </div>
+    <div class="output-area" id="sym-output" style="max-height:200px">
+      <div class="output-placeholder">Labels and addresses shown here...</div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title"><div class="dot dot-red"></div>Errors & Warnings</div>
+    </div>
+    <div class="output-area" id="err-output" style="max-height:200px">
+      <div class="output-placeholder">No errors yet...</div>
+    </div>
+  </div>
+</div>
+
+<!-- AI Explanation Panel -->
+<div class="explain-panel">
+  <div class="panel-header">
+    <div class="panel-title"><div class="dot dot-blue"></div>AI Explanation</div>
+    <div style="font-size:11px;color:var(--text3)">Click any instruction row to explain it</div>
+  </div>
+  <div class="explain-body" id="explain-body">
+    <span class="explain-placeholder">Click on any instruction in the machine code table to get an AI-powered explanation of what it does, how it's encoded, and what happens to the registers.</span>
+  </div>
+</div>
+
+<!-- Emulator Panel -->
+<div class="panel" id="emu-panel" style="margin-bottom:32px;display:none">
+  <div class="panel-header">
+    <div class="panel-title"><div class="dot dot-green"></div>Emulator — Step-by-Step Execution</div>
+  </div>
+  <div class="emu-grid">
+    <div class="reg-box"><div class="reg-name">A (Accumulator)</div><div class="reg-val" id="reg-a">00000000</div></div>
+    <div class="reg-box"><div class="reg-name">B (Stack)</div><div class="reg-val" id="reg-b">00000000</div></div>
+    <div class="reg-box"><div class="reg-name">PC</div><div class="reg-val" id="reg-pc">00000000</div></div>
+    <div class="reg-box"><div class="reg-name">SP</div><div class="reg-val" id="reg-sp">00000000</div></div>
+    <div class="reg-box"><div class="reg-name">Step</div><div class="reg-val" id="reg-step">0</div></div>
+    <div class="reg-box"><div class="reg-name">Status</div><div class="reg-val" id="reg-status" style="font-size:11px">READY</div></div>
+  </div>
+  <div class="step-controls">
+    <button class="btn-step primary" id="btn-step-one" onclick="stepOne()">▶ Step</button>
+    <button class="btn-step" id="btn-step-10" onclick="stepN(10)">▶▶ +10</button>
+    <button class="btn-step" id="btn-run-all" onclick="runAll()">⚡ Run All</button>
+    <button class="btn-step" onclick="resetEmulator()">↺ Reset</button>
+    <div class="step-counter" id="step-counter">Step 0 / halted: false</div>
+  </div>
+  <div class="trace-area">
+    <table class="trace-table">
+      <thead><tr>
+        <th>Step</th><th>PC</th><th>Instr</th><th>Mnemonic</th><th>Operand</th><th>A</th><th>B</th><th>SP</th>
+      </tr></thead>
+      <tbody id="trace-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+</div><!-- /container -->
+
+<script>
+// =============================================
+// SIMPLEX ASSEMBLER (JavaScript implementation)
+// =============================================
+
+const INSTRUCTIONS = [
+  {name:'ldc',   opcode:0,  operandType:1},
+  {name:'adc',   opcode:1,  operandType:1},
+  {name:'ldl',   opcode:2,  operandType:2},
+  {name:'stl',   opcode:3,  operandType:2},
+  {name:'ldnl',  opcode:4,  operandType:2},
+  {name:'stnl',  opcode:5,  operandType:2},
+  {name:'add',   opcode:6,  operandType:0},
+  {name:'sub',   opcode:7,  operandType:0},
+  {name:'shl',   opcode:8,  operandType:0},
+  {name:'shr',   opcode:9,  operandType:0},
+  {name:'adj',   opcode:10, operandType:1},
+  {name:'a2sp',  opcode:11, operandType:0},
+  {name:'sp2a',  opcode:12, operandType:0},
+  {name:'call',  opcode:13, operandType:2},
+  {name:'return',opcode:14, operandType:0},
+  {name:'brz',   opcode:15, operandType:2},
+  {name:'brlz',  opcode:16, operandType:2},
+  {name:'br',    opcode:17, operandType:2},
+  {name:'HALT',  opcode:18, operandType:0},
+  {name:'data',  opcode:-1, operandType:1},
+  {name:'SET',   opcode:-2, operandType:1},
+];
+const INSTR_MAP = {};
+INSTRUCTIONS.forEach(i => INSTR_MAP[i.name] = i);
+
+const SAMPLES = {
+  test1: `; test1.asm
+label:  ; an unused label
+  ldc 0
+  ldc -5
+  ldc +5
+loop: br loop   ; infinite loop
+  br next       ; offset = 0
+next:
+  ldc loop      ; load code address
+  ldc var1      ; forward ref
+var1: data 0    ; a variable`,
+
+  test3: `; test3.asm - Test SET pseudo-instruction
+val:  SET 75
+  ldc val
+  adc val2
+val2: SET 66`,
+
+  add: `; Add two numbers and halt
+; A = 10 + 25 = 35 (0x23)
+  ldc 10
+  adc 25
+  HALT`,
+
+  loop: `; Count down from 5 to 0
+  ldc 5
+loop:
+  adc -1
+  brz done
+  br loop
+done:
+  HALT`,
+
+  errors: `; Error test - multiple errors
+label:
+label:         ; duplicate label
+  br nonesuch  ; no such label
+  ldc          ; missing operand
+  add 5        ; unexpected operand
+0bad:          ; invalid label
+  fibble       ; bogus mnemonic
+  HALT`,
+};
+
+let assembleResult = null;
+let objectCode = [];
+
+function h8(v) {
+  return (v >>> 0).toString(16).toUpperCase().padStart(8,'0');
+}
+
+function parseNumber(s) {
+  s = s.trim();
+  if (/^[+-]?0[xX][0-9a-fA-F]+$/.test(s)) return {ok:true, val:parseInt(s,16)};
+  if (/^[+-]?0[0-7]+$/.test(s)) return {ok:true, val:parseInt(s,8)};
+  if (/^[+-]?[0-9]+$/.test(s)) return {ok:true, val:parseInt(s,10)};
+  return {ok:false};
+}
+
+function isValidLabel(s) {
+  return /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(s);
+}
+
+function assemble(src) {
+  const lines = src.split('\n');
+  const symbolTable = {};
+  const lineInfos = [];
+  let errors = [], warnings = [];
+  let pc = 0;
+
+  // PASS 1
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i];
+    let li = {raw, lineNum:i+1, address:pc, label:'', mnemonic:'', operand:'',
+              code:0, hasCode:false, isData:false, isSet:false,
+              errors:[], warnings:[]};
+
+    let text = raw.replace(/;.*$/,'').trim();
+    if (!text) { lineInfos.push(li); continue; }
+
+    // Label
+    const cIdx = text.indexOf(':');
+    if (cIdx !== -1) {
+      const lbl = text.substring(0, cIdx).trim();
+      text = text.substring(cIdx+1).trim();
+      if (!lbl) {
+        li.warnings.push('Empty label');
+        warnings.push({line:i+1, msg:'Empty label'});
+      } else if (!isValidLabel(lbl)) {
+        li.errors.push('Invalid label name: '+lbl);
+        errors.push({line:i+1, msg:'Invalid label name: '+lbl});
+      } else if (symbolTable[lbl] !== undefined) {
+        li.errors.push('Duplicate label: '+lbl);
+        errors.push({line:i+1, msg:'Duplicate label: '+lbl});
+      } else {
+        li.label = lbl;
+        symbolTable[lbl] = pc;
+      }
+    }
+
+    if (!text) { lineInfos.push(li); continue; }
+
+    const parts = text.split(/\s+/);
+    const mnem = parts[0];
+    const operandStr = parts.slice(1).join(' ').trim();
+    li.mnemonic = mnem;
+    li.operand = operandStr;
+
+    const instr = INSTR_MAP[mnem];
+    if (!instr) {
+      li.errors.push('Unknown mnemonic: '+mnem);
+      errors.push({line:i+1, msg:'Unknown mnemonic: '+mnem});
+      lineInfos.push(li); continue;
+    }
+
+    if (instr.opcode === -2) { // SET
+      li.isSet = true;
+      if (!li.label) {
+        li.errors.push('SET without label');
+        errors.push({line:i+1, msg:'SET without label'});
+      }
+      if (!operandStr) {
+        li.errors.push('SET without value');
+        errors.push({line:i+1, msg:'SET without value'});
+      } else {
+        const pn = parseNumber(operandStr);
+        if (pn.ok && li.label) {
+          symbolTable[li.label] = pn.val; // resolve immediately
+        }
+      }
+    } else if (instr.opcode === -1) { // data
+      li.isData = true;
+      if (!operandStr) {
+        li.errors.push('Missing operand for data');
+        errors.push({line:i+1, msg:'Missing operand for data'});
+      }
+      if (!li.label) warnings.push({line:i+1, msg:'Unlabeled data'});
+      pc++;
+    } else {
+      if (instr.operandType > 0 && !operandStr) {
+        li.errors.push('Missing operand for '+mnem);
+        errors.push({line:i+1, msg:'Missing operand for '+mnem});
+      }
+      if (instr.operandType === 0 && operandStr) {
+        li.errors.push('Unexpected operand for '+mnem);
+        errors.push({line:i+1, msg:'Unexpected operand for '+mnem});
+      }
+      pc++;
+    }
+    lineInfos.push(li);
+  }
+
+  // Check unused labels
+  // (track usage in pass2 instead)
+
+  // PASS 2
+  const objCode = [];
+  pc = 0;
+  const usedLabels = new Set();
+
+  for (let li of lineInfos) {
+    if (li.errors.length > 0) { if (li.mnemonic) pc++; continue; }
+    if (!li.mnemonic) continue;
+    if (li.isSet) continue;
+
+    const instr = INSTR_MAP[li.mnemonic];
+    if (!instr) continue;
+
+    if (li.isData) {
+      let val = 0;
+      const pn = parseNumber(li.operand);
+      if (pn.ok) { val = pn.val; }
+      else if (symbolTable[li.operand] !== undefined) {
+        val = symbolTable[li.operand];
+        usedLabels.add(li.operand);
+      }
+      li.code = val >>> 0;
+      li.hasCode = true;
+      objCode.push(li.code);
+      pc++;
+      continue;
+    }
+
+    let operandVal = 0;
+    if (instr.operandType > 0 && li.operand) {
+      const pn = parseNumber(li.operand);
+      if (pn.ok) {
+        operandVal = pn.val;
+      } else if (symbolTable[li.operand] !== undefined) {
+        operandVal = symbolTable[li.operand];
+        usedLabels.add(li.operand);
+        if (instr.operandType === 2) {
+          operandVal = operandVal - (pc + 1); // relative offset
+        }
+      } else {
+        li.errors.push('Undefined label: '+li.operand);
+        errors.push({line:li.lineNum, msg:'Undefined label: '+li.operand});
+        pc++; continue;
+      }
+    }
+
+    const encoded = ((operandVal & 0xFFFFFF) << 8) | (instr.opcode & 0xFF);
+    li.code = encoded >>> 0;
+    li.hasCode = true;
+    objCode.push(li.code);
+    li.address = pc;
+    pc++;
+  }
+
+  // Unused label warnings
+  Object.keys(symbolTable).forEach(lbl => {
+    if (!usedLabels.has(lbl)) {
+      warnings.push({line:'?', msg:'Unused label: '+lbl});
+    }
+  });
+
+  return { lineInfos, symbolTable, errors, warnings, objCode };
+}
+
+// =============================================
+// UI RENDERING
+// =============================================
+
+function renderMachineCode(result) {
+  const { lineInfos, errors } = result;
+  let html = '<table class="mc-table">';
+  html += '<thead><tr><th>Addr</th><th>Machine Code</th><th>Label</th><th>Mnemonic</th><th>Operand</th><th>Note</th></tr></thead><tbody>';
+
+  let codeIdx = 0;
+  lineInfos.forEach((li, idx) => {
+    if (!li.mnemonic && !li.label && li.errors.length === 0) return;
+
+    const isErr = li.errors.length > 0;
+    const isSet = li.isSet;
+    const rowClass = isErr ? 'error-row' : isSet ? 'set-row' : '';
+    const dataAttr = li.hasCode ? `data-idx="${codeIdx}" data-mnem="${li.mnemonic}" data-operand="${li.operand}" data-code="${h8(li.code)}" data-addr="${h8(li.address)}"` : '';
+    const clickable = li.hasCode ? 'style="cursor:pointer" onclick="explainRow(this)"' : '';
+
+    html += `<tr class="${rowClass}" ${dataAttr} ${clickable}>`;
+    html += `<td class="addr-cell">${h8(li.address)}</td>`;
+    html += `<td class="code-cell">${li.hasCode ? h8(li.code) : (isSet ? '<span style="color:var(--text3)">—  SET</span>' : '')}</td>`;
+    html += `<td class="label-cell">${li.label ? li.label+':' : ''}</td>`;
+    html += `<td class="mnem-cell">${li.mnemonic || ''}</td>`;
+    html += `<td class="operand-cell">${li.operand || ''}</td>`;
+    html += `<td class="error-cell">${li.errors.join('; ') || ''}</td>`;
+    html += '</tr>';
+
+    if (li.hasCode) codeIdx++;
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('mc-output').innerHTML = html;
+}
+
+function renderSymbolTable(symTable) {
+  const keys = Object.keys(symTable);
+  if (keys.length === 0) {
+    document.getElementById('sym-output').innerHTML = '<div class="output-placeholder">No labels defined.</div>';
+    return;
+  }
+  let html = '<table class="sym-table"><thead><tr><th>Label</th><th>Value (hex)</th><th>Value (dec)</th></tr></thead><tbody>';
+  keys.forEach(k => {
+    const v = symTable[k];
+    html += `<tr><td class="sym-name">${k}</td><td class="sym-addr">${h8(v)}</td><td style="color:var(--text2)">${v}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  document.getElementById('sym-output').innerHTML = html;
+}
+
+function renderErrors(errors, warnings) {
+  if (errors.length === 0 && warnings.length === 0) {
+    document.getElementById('err-output').innerHTML = `<div style="color:var(--green);font-family:var(--mono);font-size:13px;padding:8px">✓ No errors or warnings</div>`;
+    return;
+  }
+  let html = '<div class="err-list">';
+  errors.forEach(e => {
+    html += `<div class="err-item"><div class="err-icon">✕ Line ${e.line}</div><div class="err-text">${e.msg}</div></div>`;
+  });
+  warnings.forEach(w => {
+    html += `<div class="err-item warn-item"><div class="warn-icon">⚠ Line ${w.line}</div><div class="warn-text">${w.msg}</div></div>`;
+  });
+  html += '</div>';
+  document.getElementById('err-output').innerHTML = html;
+}
+
+function doAssemble() {
+  const src = document.getElementById('asm-input').value;
+  if (!src.trim()) return;
+
+  const btn = document.getElementById('btn-asm');
+  btn.innerHTML = '<span class="spinner"></span>Assembling...';
+  btn.classList.add('loading');
+
+  setTimeout(() => {
+    assembleResult = assemble(src);
+    objectCode = assembleResult.objCode;
+
+    renderMachineCode(assembleResult);
+    renderSymbolTable(assembleResult.symbolTable);
+    renderErrors(assembleResult.errors, assembleResult.warnings);
+
+    const si = document.getElementById('stat-instr');
+    const se = document.getElementById('stat-err');
+    const sw = document.getElementById('stat-warn');
+    si.textContent = objectCode.length;
+    se.textContent = assembleResult.errors.length;
+    sw.textContent = assembleResult.warnings.length;
+    document.getElementById('stats-bar').style.display = 'flex';
+
+    btn.innerHTML = '▶ Assemble';
+    btn.classList.remove('loading');
+
+    const emuBtn = document.getElementById('btn-emu');
+    if (objectCode.length > 0 && assembleResult.errors.length === 0) {
+      emuBtn.disabled = false;
+    } else {
+      emuBtn.disabled = true;
+      document.getElementById('emu-panel').style.display = 'none';
+    }
+  }, 100);
+}
+
+// =============================================
+// AI EXPLANATION (Anthropic API)
+// =============================================
+
+async function explainRow(row) {
+  const mnem = row.dataset.mnem;
+  const operand = row.dataset.operand;
+  const code = row.dataset.code;
+  const addr = row.dataset.addr;
+
+  const body = document.getElementById('explain-body');
+  body.innerHTML = '<span class="spinner"></span> Asking AI...';
+
+  const prompt = `You are explaining the SIMPLEX assembly instruction set to a student.
+Explain this single instruction concisely in 2-3 sentences:
+
+Instruction: ${mnem} ${operand}
+Address: 0x${addr}
+Machine code (32-bit hex): 0x${code}
+
+Explain:
+1. What this instruction does to the registers (A, B, PC, SP)
+2. How the 32-bit machine code is encoded (opcode in bottom 8 bits = ${parseInt(code,16) & 0xFF}, operand in top 24 bits)
+3. One practical use case
+
+Keep it simple, use inline code for register names and hex values. Under 80 words.`;
+
+  try {
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 200,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await response.json();
+    const text = data.content?.map(c => c.text||'').join('') || 'No response.';
+    
+    // Render with typing effect
+    body.innerHTML = '';
+    const cursor = document.createElement('span');
+    cursor.className = 'typing-cursor';
+    body.appendChild(cursor);
+
+    // Convert markdown-like to HTML
+    const formatted = text
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+    let i = 0;
+    const chars = formatted.replace(/<[^>]+>/g,'').length;
+    const rawHtml = formatted;
+    
+    // Just set it with a short delay for effect
+    setTimeout(() => {
+      body.innerHTML = rawHtml;
+    }, 300);
+
+  } catch(err) {
+    body.innerHTML = `<span style="color:var(--red)">Could not fetch explanation. Check your API key or network.</span>`;
+  }
+}
+
+// =============================================
+// EMULATOR
+// =============================================
+
+const EMU = {
+  memory: new Int32Array(65536),
+  reg: { A:0, B:0, PC:0, SP:0 },
+  running: false,
+  halted: false,
+  step: 0,
+  trace: []
+};
+
+const MNEM_OF = {0:'ldc',1:'adc',2:'ldl',3:'stl',4:'ldnl',5:'stnl',
+  6:'add',7:'sub',8:'shl',9:'shr',10:'adj',11:'a2sp',12:'sp2a',
+  13:'call',14:'return',15:'brz',16:'brlz',17:'br',18:'HALT'};
+
+function initEmulator() {
+  EMU.memory.fill(0);
+  objectCode.forEach((w,i) => EMU.memory[i] = w);
+  EMU.reg = {A:0,B:0,PC:0,SP:0};
+  EMU.halted = false;
+  EMU.step = 0;
+  EMU.trace = [];
+  document.getElementById('emu-panel').style.display = 'block';
+  document.getElementById('trace-tbody').innerHTML = '';
+  updateRegDisplay();
+  document.getElementById('reg-status').textContent = 'READY';
+  document.getElementById('reg-status').style.color = 'var(--green)';
+  document.getElementById('step-counter').textContent = 'Step 0 — ready';
+  document.getElementById('emu-panel').scrollIntoView({behavior:'smooth'});
+}
+
+function resetEmulator() { initEmulator(); }
+
+function signExtend24(v) {
+  if (v & 0x800000) return v | 0xFF000000;
+  return v;
+}
+
+function stepOne() {
+  if (EMU.halted) return;
+  const pc = EMU.reg.PC;
+  if (pc < 0 || pc >= 65536) {
+    EMU.halted = true;
+    document.getElementById('reg-status').textContent = 'PC FAULT';
+    document.getElementById('reg-status').style.color = 'var(--red)';
+    return;
+  }
+
+  const instr = EMU.memory[pc] >>> 0;
+  const opcode = instr & 0xFF;
+  const rawOp = (instr >>> 8) & 0xFFFFFF;
+  const operand = signExtend24(rawOp);
+  const newPc = pc + 1;
+
+  const prevReg = {...EMU.reg};
+  EMU.reg.PC = newPc;
+
+  switch(opcode) {
+    case 0:  EMU.reg.B=EMU.reg.A; EMU.reg.A=operand; break;
+    case 1:  EMU.reg.A+=operand; break;
+    case 2:  EMU.reg.B=EMU.reg.A; EMU.reg.A=EMU.memory[EMU.reg.SP+operand]; break;
+    case 3:  EMU.memory[EMU.reg.SP+operand]=EMU.reg.A; EMU.reg.A=EMU.reg.B; break;
+    case 4:  EMU.reg.A=EMU.memory[EMU.reg.A+operand]; break;
+    case 5:  EMU.memory[EMU.reg.A+operand]=EMU.reg.B; break;
+    case 6:  EMU.reg.A=EMU.reg.B+EMU.reg.A; break;
+    case 7:  EMU.reg.A=EMU.reg.B-EMU.reg.A; break;
+    case 8:  EMU.reg.A=EMU.reg.B<<EMU.reg.A; break;
+    case 9:  EMU.reg.A=(EMU.reg.B>>>0)>>>(EMU.reg.A>>>0); break;
+    case 10: EMU.reg.SP+=operand; break;
+    case 11: EMU.reg.SP=EMU.reg.A; EMU.reg.A=EMU.reg.B; break;
+    case 12: EMU.reg.B=EMU.reg.A; EMU.reg.A=EMU.reg.SP; break;
+    case 13: EMU.reg.B=EMU.reg.A; EMU.reg.A=newPc; EMU.reg.PC=newPc+operand; break;
+    case 14: EMU.reg.PC=EMU.reg.A; EMU.reg.A=EMU.reg.B; break;
+    case 15: if(EMU.reg.A===0) EMU.reg.PC=newPc+operand; break;
+    case 16: if(EMU.reg.A<0)   EMU.reg.PC=newPc+operand; break;
+    case 17: EMU.reg.PC=newPc+operand; break;
+    case 18: EMU.halted=true; break;
+    default:
+      EMU.halted=true;
+      document.getElementById('reg-status').textContent='BAD OPCODE';
+      document.getElementById('reg-status').style.color='var(--red)';
+      return;
+  }
+
+  EMU.step++;
+  const hasOp = ![6,7,8,9,11,12,14,18].includes(opcode);
+  EMU.trace.push({step:EMU.step, pc:h8(pc), instr:h8(instr),
+    mnem:MNEM_OF[opcode]||'???',
+    operand: hasOp ? h8(operand>>>0) : '',
+    A:h8(prevReg.A>>>0), B:h8(prevReg.B>>>0), SP:h8(prevReg.SP>>>0)});
+
+  appendTraceRow(EMU.trace[EMU.trace.length-1]);
+  updateRegDisplay(prevReg);
+  document.getElementById('step-counter').textContent = `Step ${EMU.step} — halted: ${EMU.halted}`;
+
+  if (EMU.halted) {
+    document.getElementById('reg-status').textContent = 'HALTED';
+    document.getElementById('reg-status').style.color = 'var(--amber)';
+  }
+}
+
+function stepN(n) { for(let i=0;i<n&&!EMU.halted;i++) stepOne(); }
+
+function runAll() {
+  let guard = 0;
+  while (!EMU.halted && guard < 100000) { stepOne(); guard++; }
+  if (guard >= 100000) {
+    document.getElementById('reg-status').textContent = 'LOOP LIMIT';
+    document.getElementById('reg-status').style.color = 'var(--red)';
+  }
+}
+
+function appendTraceRow(t) {
+  const tbody = document.getElementById('trace-tbody');
+  // Remove previous current highlight
+  tbody.querySelectorAll('.current-row').forEach(r => r.classList.remove('current-row'));
+  const tr = document.createElement('tr');
+  tr.className = 'current-row';
+  tr.innerHTML = `<td>${t.step}</td><td style="color:var(--cyan)">${t.pc}</td><td style="color:var(--text3)">${t.instr}</td><td style="color:var(--accent)">${t.mnem}</td><td style="color:var(--amber)">${t.operand}</td><td style="color:var(--text)">${t.A}</td><td style="color:var(--text2)">${t.B}</td><td style="color:var(--text2)">${t.SP}</td>`;
+  tbody.appendChild(tr);
+  tr.scrollIntoView({block:'nearest'});
+}
+
+function updateRegDisplay(prev) {
+  const fields = ['A','B','PC','SP'];
+  fields.forEach(f => {
+    const el = document.getElementById('reg-'+f.toLowerCase());
+    const val = h8(EMU.reg[f]>>>0);
+    if (prev && prev[f] !== EMU.reg[f]) {
+      el.textContent = val;
+      el.classList.remove('changed');
+      void el.offsetWidth;
+      el.classList.add('changed');
+    } else {
+      el.textContent = val;
+    }
+  });
+  document.getElementById('reg-step').textContent = EMU.step;
+}
+
+// =============================================
+// SAMPLE LOADING
+// =============================================
+
+function loadSample(name) {
+  document.getElementById('asm-input').value = SAMPLES[name] || '';
+  updateLineNumbers();
+  document.getElementById('mc-output').innerHTML = '<div class="output-placeholder">Press Assemble to process this file...</div>';
+  document.getElementById('sym-output').innerHTML = '<div class="output-placeholder">Labels and addresses shown here...</div>';
+  document.getElementById('err-output').innerHTML = '<div class="output-placeholder">No errors yet...</div>';
+  document.getElementById('stats-bar').style.display = 'none';
+  document.getElementById('emu-panel').style.display = 'none';
+  document.getElementById('btn-emu').disabled = true;
+  assembleResult = null; objectCode = [];
+}
+
+// =============================================
+// LINE NUMBERS
+// =============================================
+
+function updateLineNumbers() {
+  const ta = document.getElementById('asm-input');
+  const count = ta.value.split('\n').length;
+  document.getElementById('line-nums').textContent = Array.from({length:count},(_,i)=>i+1).join('\n');
+}
+
+document.getElementById('asm-input').addEventListener('input', updateLineNumbers);
+document.getElementById('asm-input').addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const s = e.target.selectionStart, en = e.target.selectionEnd;
+    e.target.value = e.target.value.substring(0,s) + '  ' + e.target.value.substring(en);
+    e.target.selectionStart = e.target.selectionEnd = s+2;
+    updateLineNumbers();
+  }
+});
+
+// Load default sample
+loadSample('add');
+</script>
+</body>
+</html>

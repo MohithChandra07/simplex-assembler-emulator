@@ -1,0 +1,9 @@
+SIMPLEX Final Register State
+File: test4
+Instructions executed: 9
+========================================
+
+A  = 0x00000008 (8)
+B  = 0x0000000A (10)
+PC = 0x000A (10)
+SP = 0x0FFF (4095)

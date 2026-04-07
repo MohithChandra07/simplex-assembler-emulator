@@ -1,0 +1,9 @@
+SIMPLEX Final Register State
+File: test1
+Instructions executed: 6
+========================================
+
+A  = 0x0000000F (15)
+B  = 0x00000000 (0)
+PC = 0x0007 (7)
+SP = 0x0000 (0)
