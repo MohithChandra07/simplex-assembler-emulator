@@ -102,7 +102,7 @@ No internet required — except for the AI explanation feature.
   OR upload to YouTube (Unlisted is fine) → paste the URL below
 -->
 
-[![▶ Watch Full Demo — 6 minutes](https://img.shields.io/badge/▶%20Watch%20Full%20Demo-6%20min-DC2626?style=for-the-badge&logo=youtube&logoColor=white)](YOUR_VIDEO_LINK_HERE)
+[![▶ Watch Full Demo — 6 minutes](https://img.shields.io/badge/▶%20Watch%20Full%20Demo-6%20min-DC2626?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/ZyZ6gSziXzk)
 
 The recording walks through the entire project end to end — compiling the assembler and emulator, running all the test programs, inspecting output files, and a live demo of SIMPLEX Studio in the browser.
 
