@@ -9,9 +9,16 @@
 # temp files
 *.log
 
-# large media
-*.mov
-*.mp4
-
 # zip
 *.zip
+
+# generated files
+*.trace
+*.mem_init
+*.mem_final
+*.lst
+*.obj
+
+# recordings
+*.mov
+*.mp4
