@@ -276,7 +276,7 @@ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
 
 <div align="center">
 
-Made with ❤️ by **Mohith Chandra Gugulothu** · `2403cs04`
+Made by **Mohith Chandra Gugulothu** · `2403cs04`
 IIT Patna — CS2206 Computer Architecture
 
 </div>
