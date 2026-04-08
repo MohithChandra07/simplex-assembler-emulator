@@ -1,7 +1,0 @@
-{
-  "files.exclude": {
-    "Programmings/Machine code.cpp": true,
-    "Programmings/Symbol table.cpp": true,
-    "Programmings/emu2.cpp": false
-  }
-}
