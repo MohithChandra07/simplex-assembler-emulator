@@ -89,20 +89,6 @@ cd simplex-assembler-emulator
 open index.html
 ```
 
-```bash
-git clone https://github.com/MohithChandra07/simplex-assembler-emulator.git
-cd simplex-assembler-emulator
-
-# macOS
-open "<!DOCTYPE html>.html"
-
-# Windows
-start "<!DOCTYPE html>.html"
-
-# Linux
-xdg-open "<!DOCTYPE html>.html"
-```
-
 No internet required — except for the AI explanation feature.
 
 ---
