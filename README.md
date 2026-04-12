@@ -9,6 +9,8 @@
 ![Course](https://img.shields.io/badge/CS2206-Computer%20Architecture-DC2626?style=for-the-badge)
 ![Institute](https://img.shields.io/badge/IIT%20Patna-2403cs04-1D4ED8?style=for-the-badge)
 
+[![🌐 Live Demo](https://img.shields.io/badge/🌐%20Live%20Demo-Open%20SIMPLEX%20Studio-22C55E?style=for-the-badge)](https://mohithchandra07.github.io/simplex-assembler-emulator/)
+
 <br/>
 
 **A complete two-pass assembler and emulator built from scratch for the SIMPLEX Instruction Set Architecture, plus an interactive browser-based IDE with AI-powered instruction explanations.**
@@ -75,6 +77,17 @@ A fully interactive browser-based IDE for SIMPLEX assembly — no installation, 
 | 🤖 AI Explanation | Click any instruction row → AI explains what it does and why |
 
 ### How to open it
+
+## 🚀 Try it live — no installation needed
+
+👉 **[Open SIMPLEX Studio](https://mohithchandra07.github.io/simplex-assembler-emulator/)**
+
+Or run locally:
+```bash
+git clone https://github.com/MohithChandra07/simplex-assembler-emulator.git
+cd simplex-assembler-emulator
+open index.html
+```
 
 ```bash
 git clone https://github.com/MohithChandra07/simplex-assembler-emulator.git
