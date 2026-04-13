@@ -9,7 +9,7 @@
 ![Course](https://img.shields.io/badge/CS2206-Computer%20Architecture-DC2626?style=for-the-badge)
 ![Institute](https://img.shields.io/badge/IIT%20Patna-2403cs04-1D4ED8?style=for-the-badge)
 
-[![🌐 Live Demo](https://img.shields.io/badge/🌐%20Live%20Demo-Open%20SIMPLEX%20Studio-22C55E?style=for-the-badge)](https://mohithchandra07.github.io/simplex-assembler-emulator/)
+[![🌐 Live Demo](https://img.shields.io/badge/🌐%20Live%20Demo-Open%20SIMPLEX%20Studio-22C55E?style=for-the-badge)](https://mohithchandra07.github.io/CS2206-MiniProj-TwoPassAssembler/)
 
 <br/>
 
@@ -80,14 +80,9 @@ A fully interactive browser-based IDE for SIMPLEX assembly — no installation, 
 
 ## 🚀 Try it live — no installation needed
 
-👉 **[Open SIMPLEX Studio](https://mohithchandra07.github.io/simplex-assembler-emulator/)**
+👉 **[Open SIMPLEX Studio](https://mohithchandra07.github.io/CS2206-MiniProj-TwoPassAssembler/)**
 
-Or run locally:
-```bash
-git clone https://github.com/MohithChandra07/simplex-assembler-emulator.git
-cd simplex-assembler-emulator
-open index.html
-```
+Or run locally by cloning the repo and opening `index.html` in your browser.
 
 No internet required — except for the AI explanation feature.
 
